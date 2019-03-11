@@ -16,34 +16,13 @@ def score_model(model, x, y):
     scores = cross_val_score(model, x, y, cv=5)
     return scores
 
-def feature_engineering_pipeline(raw_data, fe_functions, model, x, y):
-    selected_functions = []
-    base_score = score_model(raw_data)
-    print('Base Score: {:.4f}'.format(base_score))
-    engineered_data = raw_data.copy()
-    for fe_function in fe_functions:
-        processed_data = globals()[fe_function](engineered_data)
-        new_score = score_model(processed_data)
-        print('- New Score ({}): {:.4f} '.format(fe_function, new_score), 
-              end='')
-        difference = (new_score-base_score)
-        print('[diff: {:.4f}] '.format(difference), end='')
-        if difference > 0:
-            selected_functions.append(fe_function)
-            engineered_data = processed_data.copy()
-            base_score = new_score
-            print('[Accepted]')
-        else:
-            print('[Rejected]')
-    return selected_functions, engineered_data
-
 def cv_evaluate(df, splits = 5, model = make_pipeline(LogisticRegression(multi_class = 'ovr', solver = 'lbfgs', max_iter = 400)), transformers = None, grid = None):
     TARGET_VARIABLE = 'status_group'
     METRIC = 'accuracy'
     X = df.loc[:, df.columns != TARGET_VARIABLE]
     y = df.loc[:, TARGET_VARIABLE]
-    train_size = int(len(df) * 0.85)
-    X_train, X_validate, y_train, y_validate = X[0:train_size], X[train_size:len(df)], y[0:train_size], y[train_size:len(df)]
+    train_size = int(50490)
+    X_train, X_validate, y_train, y_validate = X[0:train_size], X[train_size:59400], y[0:train_size], y[train_size:59400]
 
     if transformers:
         model = make_pipeline(model)
@@ -68,9 +47,9 @@ def feature_engineering_pipeline(df, models, transformers, splits = 5):
 
     for model in models:
         best_score = 0
+        top_score, scores, cv_model = cv_evaluate(df, model = model['model'], splits = splits)
         model['score'] = 0
         model['transformers'] = []
-        top_score, scores, cv_model = cv_evaluate(df, model = model['model'], splits = splits)
         all_scores = all_scores.append({'Model': model['name'], 'Function':'base_score','CV Score': '{:.2f} +/- {:.02}'.format(np.mean(scores[scores > 0.0]),np.std(scores[scores > 0.0])),'Holdout Score': top_score, 'Difference': 0, 'Outcome': 'Base ' + model['name']}, ignore_index=True)
         
         difference = (best_score - top_score)
