@@ -21,8 +21,8 @@ def cv_evaluate(df, splits = 5, model = make_pipeline(LogisticRegression(multi_c
     METRIC = 'accuracy'
     X = df.loc[:, df.columns != TARGET_VARIABLE]
     y = df.loc[:, TARGET_VARIABLE]
-    train_size = int(50490)
-    X_train, X_validate, y_train, y_validate = X[0:train_size], X[train_size:59400], y[0:train_size], y[train_size:59400]
+    train_size = int(len(df) * 0.85)
+    X_train, X_validate, y_train, y_validate = X[0:train_size], X[train_size:len(df)], y[0:train_size], y[train_size:len(df)]
 
     if transformers:
         model = make_pipeline(model)
@@ -48,7 +48,7 @@ def feature_engineering_pipeline(df, models, transformers, splits = 5):
     for model in models:
         best_score = 0
         top_score, scores, cv_model = cv_evaluate(df, model = model['model'], splits = splits)
-        model['score'] = 0
+        model['score'] = top_score
         model['transformers'] = []
         all_scores = all_scores.append({'Model': model['name'], 'Function':'base_score','CV Score': '{:.2f} +/- {:.02}'.format(np.mean(scores[scores > 0.0]),np.std(scores[scores > 0.0])),'Holdout Score': top_score, 'Difference': 0, 'Outcome': 'Base ' + model['name']}, ignore_index=True)
         
