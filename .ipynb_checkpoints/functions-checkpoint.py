@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, classification_report
 from sklearn.metrics import accuracy_score as metric_scorer
 from sklearn.model_selection import cross_val_score, RandomizedSearchCV, train_test_split
 
@@ -17,7 +17,7 @@ def score_model(model, x, y):
     scores = cross_val_score(model, x, y, cv=5)
     return scores
 
-def cv_evaluate(df, splits = 5, model = make_pipeline(LogisticRegression(multi_class = 'ovr', solver = 'lbfgs', max_iter = 400)), transformers = None, grid = None, confusion_matrix = False):
+def cv_evaluate(df, splits = 5, model = make_pipeline(LogisticRegression(multi_class = 'ovr', solver = 'lbfgs', max_iter = 400)), transformers = None, grid = None, confusion = False):
     TARGET_VARIABLE = 'status_group'
     METRIC = 'accuracy'
     X = df.loc[:, df.columns != TARGET_VARIABLE]
@@ -42,17 +42,17 @@ def cv_evaluate(df, splits = 5, model = make_pipeline(LogisticRegression(multi_c
     pred = model.predict(X_validate)
     final_score = metric_scorer(y_validate, pred)
     
-    if confusion_matrix == True:
-        print('Confusion_matrix  - \n',confusion_matrix(y_validate,pred))
+    if confusion:
+        print('Classification report \n', classification_report(y_validate,pred))
     
     return final_score, scores, model
 
-def feature_engineering_pipeline(df, models, transformers, splits = 5):
+def feature_engineering_pipeline(df, models, transformers, confusion, splits = 5):
     all_scores  = pd.DataFrame(columns = ['Model', 'Function', 'CV Score', 'Holdout Score', 'Difference', 'Outcome'])
 
     for model in models:
         best_score = 0
-        top_score, scores, cv_model = cv_evaluate(df, model = model['model'], splits = splits)
+        top_score, scores, cv_model = cv_evaluate(df, model = model['model'], splits = splits, confusion = conf)
         model['score'] = top_score
         model['transformers'] = []
         all_scores = all_scores.append({'Model': model['name'], 'Function':'base_score','CV Score': '{:.2f} +/- {:.02}'.format(np.mean(scores[scores > 0.0]),np.std(scores[scores > 0.0])),'Holdout Score': top_score, 'Difference': 0, 'Outcome': 'Base ' + model['name']}, ignore_index=True)
