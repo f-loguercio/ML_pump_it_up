@@ -47,12 +47,12 @@ def cv_evaluate(df, splits = 5, model = make_pipeline(LogisticRegression(multi_c
     
     return final_score, scores, model
 
-def feature_engineering_pipeline(df, models, transformers, confusion, splits = 5):
+def feature_engineering_pipeline(df, models, transformers, splits = 5):
     all_scores  = pd.DataFrame(columns = ['Model', 'Function', 'CV Score', 'Holdout Score', 'Difference', 'Outcome'])
 
     for model in models:
         best_score = 0
-        top_score, scores, cv_model = cv_evaluate(df, model = model['model'], splits = splits, confusion = conf)
+        top_score, scores, cv_model = cv_evaluate(df, model = model['model'], splits = splits)
         model['score'] = top_score
         model['transformers'] = []
         all_scores = all_scores.append({'Model': model['name'], 'Function':'base_score','CV Score': '{:.2f} +/- {:.02}'.format(np.mean(scores[scores > 0.0]),np.std(scores[scores > 0.0])),'Holdout Score': top_score, 'Difference': 0, 'Outcome': 'Base ' + model['name']}, ignore_index=True)
