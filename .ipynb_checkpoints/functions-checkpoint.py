@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.pipeline import make_pipeline
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score as metric_scorer
-from sklearn.model_selection import cross_val_score, RandomizedSearchCV
+from sklearn.model_selection import cross_val_score, RandomizedSearchCV, train_test_split
 
 def score_model(model, x, y):
     scores = cross_val_score(model, x, y, cv=5)
@@ -21,8 +21,9 @@ def cv_evaluate(df, splits = 5, model = make_pipeline(LogisticRegression(multi_c
     METRIC = 'accuracy'
     X = df.loc[:, df.columns != TARGET_VARIABLE]
     y = df.loc[:, TARGET_VARIABLE]
-    train_size = int(len(df) * 0.85)
-    X_train, X_validate, y_train, y_validate = X[0:train_size], X[train_size:len(df)], y[0:train_size], y[train_size:len(df)]
+    #train_size = int(len(df) * 0.85)
+    #X_train, X_validate, y_train, y_validate = X[0:train_size], X[train_size:len(df)], y[0:train_size], y[train_size:len(df)]
+    X_train, X_validate, y_train, y_validate = train_test_split(X, y, test_size = 0.15)
 
     if transformers:
         model = make_pipeline(model)
